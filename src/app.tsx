@@ -6,7 +6,7 @@ const Wrapper = styled.section`
   background: papayawhip;
 `
 
-const App = () => {
+const App = ({state}: any) => {
   return (
   <Wrapper>
       <p>Accounts Page</p>
@@ -15,6 +15,7 @@ const App = () => {
               <p>Account 1</p>
               <p>Account 2</p>
               <p>Account 3</p>
+              <p>Account 4</p>
           </li>
       </ul>
   </Wrapper>);
