@@ -16,6 +16,7 @@
   "dependencies": {
     "core-js": "^3.6.4",
     "express": "^4.17.1",
+    "lowdb": "^1.0.0",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "reload": "^3.0.4",
@@ -43,6 +44,7 @@
     "eslint-plugin-react": "^7.19.0",
     "nodemon": "^2.0.2",
     "prettier": "^2.0.2",
+    "rimraf": "^3.0.2",
     "rollup": "^2.3.2",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-browsersync": "^1.1.0",

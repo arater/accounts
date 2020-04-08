@@ -10,7 +10,12 @@ import filesize from 'rollup-plugin-filesize';
 import progress from 'rollup-plugin-progress';
 import json from '@rollup/plugin-json';
 import { uglify } from 'rollup-plugin-uglify';
+import rimraf from 'rimraf';
 import pkg from './package.json';
+import low from 'lowdb';
+import FileSync from 'lowdb/adapters/FileSync';
+import fs from 'fs';
+//import ssrBundler from './config/rollup.config.ssr' bu index.ssr.tsx
 
 const isProd = process.env.BUILD === 'production';
 process.env.NODE_ENV = isProd ? 'production' : 'development';
@@ -131,7 +136,6 @@ const commonOptions = {
   treeshake: false
 };
 
-// Browser Rendering frontend application file bundle
 const clientConfig = {
   ...commonOptions,
   input: 'src/entry.tsx',
@@ -161,6 +165,7 @@ const clientConfig = {
     include: 'src/**'
   }
 };
+
 // SSR Rendering frontend application file bundle
 const appConfig = {
   input: 'src/app.tsx',
@@ -173,7 +178,7 @@ const appConfig = {
     include: 'src/**'
   }
 };
-// Arrow function calls with recursive
+
 const rollupBundler = hotReload => {
   const watcher = rollup.watch([clientConfig, appConfig]);
 
@@ -184,7 +189,6 @@ const rollupBundler = hotReload => {
     //   BUNDLE_END   — finished building a bundle
     //   END          — finished building all bundles
     //   ERROR        — encountered an error while bundling
-
     if (event.code === 'BUNDLE_START' || event.code === 'BUNDLE_END') {
       console.info(`${event.code}: ${event.input}`);
     }
@@ -192,15 +196,102 @@ const rollupBundler = hotReload => {
   });
 };
 
+const rollupBuild = async () => {
+  console.log('rollUpBuild');
+  await rimraf.sync('dist');
+  const fragmentManifest = './dist/public';
+
+  if (!fs.existsSync(fragmentManifest)) {
+    await fs.mkdirSync(fragmentManifest, { recursive: true });
+  }
+
+  const adapter = new FileSync(`${fragmentManifest}/fragment.json`);
+  const db = low(adapter);
+
+  db.set('name', pkg.name).write();
+  db.set('version', pkg.version).write();
+
+  const clientSideBuild = async () => {
+    const bundle = await rollup.rollup({
+      input: clientConfig.input,
+      ...commonOptions,
+      external: [...commonExternal],
+      plugins: clientConfig.plugins
+    });
+
+    const bundleOutput = await bundle.generate(clientConfig.output);
+
+    for (const chunkOrAsset of bundleOutput.output) {
+      if (chunkOrAsset.type === 'asset') {
+        // console.log('Asset', chunkOrAsset)
+      } else {
+        db.set(chunkOrAsset.fileName, chunkOrAsset.code).write();
+      }
+    }
+    await bundle.write(clientConfig.output);
+  };
+
+  // const ssrBuild = async () => {
+  //   const bundle = await rollup.rollup(ssrBundler.rollupInputOptions);
+
+  //   await bundle.write(ssrBundler.rollupOutputOptions);
+
+  //   const reactDomBodyStreamFile = require.resolve(`./${ssrBundler.rollupOutputOptions.file}`);
+  //   if (reactDomBodyStreamFile) {
+  //     let html;
+
+  //     const ReactDomBodyStream = require(reactDomBodyStreamFile);
+
+  //     ReactDomBodyStream.on('data', (chunk) => (html += chunk.toString()));
+
+  //     ReactDomBodyStream.on('end', () => db.set('html', `<div id="${pkg.name}-root">${html}</div>`).write());
+  //   }
+  // };
+
+  const serverBuild = async () => {
+    const bundle = await rollup.rollup({
+      input: serverConfig.input,
+      ...commonOptions,
+      external: [...commonExternal],
+      plugins: serverConfig.plugins
+    });
+    // not to run runServer infinitely
+    await bundle.write({ file: 'dist/server.js', format: 'cjs', compact: true });
+  };
+
+  await clientSideBuild();
+  await serverBuild();
+  //   const bundleOutput = await bundle.generate(clientBundler.rollupOutputOptions);
+
+  //   for (const chunkOrAsset of bundleOutput.output) {
+  //     if (chunkOrAsset.type === 'asset') {
+  //       // console.log('Asset', chunkOrAsset)
+  //     } else {
+  //       db.set(chunkOrAsset.fileName, chunkOrAsset.code).write();
+  //     }
+  //   }
+
+  //   await bundle.write(clientBundler.rollupOutputOptions);
+  // };
+};
+
 const runServer = () => ({
   name: 'server-run',
   writeBundle: ({ file }) => {
     const bundleServerPath = require.resolve(`./${file}`);
-    require(bundleServerPath)(rollupBundler);
+    console.log('Run Server');
+    rollupBuild();
+
+    //const { run, build } = require(bundleServerPath);
+    // if (!isProd) {
+    //   build(rollupBuild);
+    //   //run(rollupBundler);
+    // } else {
+    //   build(rollupBuild);
+    // }
   }
 });
 
-// Express app es6 typescript syntax
 const serverConfig = {
   ...commonOptions,
   input: 'src/server.tsx',
@@ -220,3 +311,52 @@ const serverConfig = {
 };
 
 export default serverConfig;
+
+// export default {
+//   input: 'src/index.tsx',
+//   external: isProd && ['react', 'react-dom', 'prop-types', 'styled-components'],
+//   output: {
+//     name,
+//     file: 'public/dist/app.js',
+//     format: 'iife',
+//     globals: {
+//       react: 'React',
+//       'react-dom': 'ReactDOM',
+//       'prop-types': 'PropTypes',
+//       'styled-components': 'styled',
+//     },
+//   },
+//   plugins: [
+//     replace({
+//       'process.env.NODE_ENV': JSON.stringify(isProd ? 'production' : 'development'),
+//     }),
+//     resolve(),
+//     commonjs({
+//       include: 'node_modules/**',
+//       namedExports: {
+//         react: reactNamedExports,
+//         'react-dom': reactDOMNamedExports,
+//         'react-is': reactIsNamedExports,
+//       },
+//     }),
+//     babel({
+//       extensions: [...DEFAULT_EXTENSIONS, '.ts', '.tsx'],
+//       exclude: 'node_modules/**',
+//     }),
+//     filesize(),
+//     typescript(),
+//     alias({
+//       entries: [{ find: 'components', replacement: path.join(__dirname, 'src/components') }],
+//     }),
+//     progress({
+//       clearLine: false,
+//     }),
+//     isProd && visualizer(),
+//     isProd && uglify(),
+//     !isProd && browsersync({ server: 'public', files: 'public/dist/app.js' }),
+//   ],
+//   watch: {
+//     exclude: 'node_modules/**',
+//     include: 'src/**',
+//   },
+// };
