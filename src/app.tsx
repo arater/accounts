@@ -21,4 +21,4 @@ const App = ({state}: any) => {
   </Wrapper>);
 }
 
-export default App
+export default App;
