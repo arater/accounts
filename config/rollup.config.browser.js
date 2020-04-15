@@ -1,5 +1,5 @@
-import { pkg, isProd, commonExternal } from './utils';
-import { typescript, replace, visualizer, uglify, commonPlugins } from './plugins';
+const { pkg, isProd, commonExternal } = require('./utils');
+const { typescript, replace, visualizer, uglify, commonPlugins } = require('./plugins');
 
 const plugins = [
   typescript({ check: isProd }),

@@ -7,14 +7,15 @@
   "license": "MIT",
   "scripts": {
     "start": "yarn run build && node dist/server",
-    "build": "cross-env BUILD:production node index",
-    "dev": "cross-env BUILD:development node index"
+    "build": "cross-env BUILD=production node index",
+    "dev": "cross-env BUILD=development node index"
   },
   "private": false,
   "files": [
     "dist"
   ],
   "dependencies": {
+    "compression": "^1.7.4",
     "core-js": "^3.6.4",
     "express": "^4.17.1",
     "lowdb": "^1.0.0",

@@ -1,5 +1,6 @@
 import React from 'react'
 import styled from 'styled-components'
+import Counter from './components/counter';
 
 const Wrapper = styled.section`
   padding: 4em;
@@ -18,6 +19,9 @@ const App = ({state}: any) => {
               <p>Account 4</p>
           </li>
       </ul>
+      <div>
+        <Counter />
+      </div>
   </Wrapper>);
 }
 

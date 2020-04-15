@@ -1,5 +1,5 @@
-import { DEFAULT_EXTENSIONS } from '@babel/core';
-import pkg from '../package';
+const { DEFAULT_EXTENSIONS } = require('@babel/core');
+const pkg = require('../package.json');
 
 const isProd = process.env.BUILD === 'production';
 

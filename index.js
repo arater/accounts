@@ -1,17 +1,16 @@
-import { isProd, pkg } from './config/utils';
-import rollup from 'rollup';
-import rimraf from 'rimraf';
-import fs from 'fs';
-import low from 'lowdb';
-import FileSync from 'lowdb/adapters/FileSync';
-import ReactDomBodyStream from 'ReactDomBodyStream';
+const { isProd, pkg } = require('./config/utils');
+const rollup = require('rollup');
+const rimraf = require('rimraf');
+const fs = require('fs');
+const low = require('lowdb');
+const FileSync = require('lowdb/adapters/FileSync');
 
 process.env.NODE_ENV = isProd ? 'production' : 'development';
 process.env.BABEL_ENV = isProd ? 'production' : 'development';
 
-import clientBundler from './config/rollup.config.browser';
-import ssrBundler from './config/rollup.config.ssr';
-import serverBundler from './config/rollup.config.server';
+const clientBundler = require('./config/rollup.config.browser');
+const ssrBundler = require('./config/rollup.config.ssr');
+const serverBundler = require('./config/rollup.config.server');
 
 // Generate fragment json
 const build = async () => {
@@ -54,7 +53,7 @@ const build = async () => {
     const reactDomBodyStreamFile = require.resolve(`./${ssrBundler.rollupOutputOptions.file}`);
     if (reactDomBodyStreamFile) {
       let html;
-
+      const ReactDomBodyStream = require(reactDomBodyStreamFile);
       ReactDomBodyStream.on('data', chunk => (html += chunk.toString()));
 
       ReactDomBodyStream.on('end', () => db.set('html', `<div id="${pkg.name}-root">${html}</div>`).write());

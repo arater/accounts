@@ -1,17 +1,17 @@
-import fs from 'fs';
-import path from 'path';
-import { reactNamedExports, reactDOMNamedExports, reactIsNamedExports, isProd, extensions } from './utils';
-import replace from '@rollup/plugin-replace';
-import typescript from 'rollup-plugin-typescript2';
-import babel from 'rollup-plugin-babel';
-import commonjs from '@rollup/plugin-commonjs';
-import resolve from '@rollup/plugin-node-resolve';
-import visualizer from 'rollup-plugin-visualizer';
-import filesize from 'rollup-plugin-filesize';
-import progress from 'rollup-plugin-progress';
-import json from '@rollup/plugin-json';
-import { uglify } from 'rollup-plugin-uglify';
-import run from '@rollup/plugin-run';
+const path = require('path');
+const fs = require('fs');
+const { isProd, extensions, reactNamedExports, reactDOMNamedExports, reactIsNamedExports } = require('./utils');
+const replace = require('@rollup/plugin-replace');
+const typescript = require('rollup-plugin-typescript2');
+const babel = require('rollup-plugin-babel');
+const commonjs = require('@rollup/plugin-commonjs');
+const resolve = require('@rollup/plugin-node-resolve');
+const visualizer = require('rollup-plugin-visualizer');
+const filesize = require('rollup-plugin-filesize');
+const progress = require('rollup-plugin-progress');
+const run = require('@rollup/plugin-run');
+const json = require('@rollup/plugin-json');
+const { uglify } = require('rollup-plugin-uglify');
 
 const resolverPlugin = () => ({
   resolveId(source, importer) {
